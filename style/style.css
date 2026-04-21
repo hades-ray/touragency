@@ -326,3 +326,69 @@
 .dest-card {
     overflow: hidden; /* Чтобы картинка не вылезала при увеличении */
 }
+
+
+.filter-bar {
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    margin-bottom: 40px;
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-end;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #555;
+    text-transform: uppercase;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    background-color: #f9f9f9;
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.reset-link {
+    font-size: 14px;
+    color: #ff6b6b;
+    text-decoration: underline;
+}
+
+.search-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 13px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.search-btn:hover {
+    background: #0056b3;
+}

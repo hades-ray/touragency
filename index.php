@@ -5,6 +5,35 @@ require_once 'db.php'; // Подключаемся к базе
 // Запрос на получение всех туров
 $query = "SELECT * FROM tours";
 $result = mysqli_query($conn, $query);
+
+// 1. Получаем уникальные локации для фильтра
+$locations_query = "SELECT DISTINCT location FROM tours";
+$locations_result = mysqli_query($conn, $locations_query);
+
+// 2. Получаем уникальные типы питания для фильтра
+$diets_query = "SELECT DISTINCT diet FROM tours";
+$diets_result = mysqli_query($conn, $diets_query);
+
+// 3. Обработка фильтрации
+$where_clauses = [];
+
+if (!empty($_GET['filter_location'])) {
+    $loc = mysqli_real_escape_string($conn, $_GET['filter_location']);
+    $where_clauses[] = "location = '$loc'";
+}
+
+if (!empty($_GET['filter_diet'])) {
+    $diet = mysqli_real_escape_string($conn, $_GET['filter_diet']);
+    $where_clauses[] = "diet = '$diet'";
+}
+
+// Собираем итоговый SQL запрос
+$sql = "SELECT * FROM tours";
+if (count($where_clauses) > 0) {
+    $sql .= " WHERE " . implode(' AND ', $where_clauses);
+}
+
+$tours_result = mysqli_query($conn, $sql);
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -28,9 +57,9 @@ $result = mysqli_query($conn, $query);
             
             <nav class="nav-menu">
                 <ul>
-                    <li><a href="#destinations">Направления</a></li>
-                    <li><a href="#services">Услуги</a></li>
-                    <li><a href="#reviews">Отзывы</a></li>
+                    <li><a href="destinations_info.php">Направления</a></li>
+                    <li><a href="services.php">Услуги</a></li>
+                    <li><a href="reviews.php">Отзывы</a></li>
                 </ul>
             </nav>
 
@@ -62,60 +91,72 @@ $result = mysqli_query($conn, $query);
             <a href="#destinations" class="cta-button">Начать подбор</a>
         </section>
 
-        <!-- Модуль поиска -->
-        <div class="container">
-            <form class="search-box">
-                <div class="search-group">
-                    <label>Куда едем?</label>
-                    <select>
-                        <option>Турция</option>
-                        <option>ОАЭ</option>
-                        <option>Египет</option>
-                        <option>Таиланд</option>
-                    </select>
-                </div>
-                <div class="search-group">
-                    <label>Дата вылета</label>
-                    <input type="date">
-                </div>
-                <div class="search-group">
-                    <label>Туристы</label>
-                    <input type="number" value="2" min="1">
-                </div>
-                <button type="submit" class="search-btn">Найти туры</button>
-            </form>
-        </div>
-
         <!-- Секция направлений -->
-        <section id="destinations" class="section container">
+        <section id="destinations" class="section container" style="padding-top: 100px;">
             <div class="section-title">
-                <h2>Популярные направления</h2>
-                <p>Лучшие предложения по мнению наших туристов</p>
+                <h2>Выберите ваше направление</h2>
+                <p>Используйте фильтры, чтобы найти идеальный вариант</p>
+            </div>
+                        
+            <!-- Форма фильтрации -->
+            <div class="filter-bar">
+                <form action="index.php#destinations" method="GET" class="filter-form">
+                    <div class="filter-group">
+                        <label>Направление:</label>
+                        <select name="filter_location">
+                            <option value="">Все страны</option>
+                            <?php while($loc_row = mysqli_fetch_assoc($locations_result)): ?>
+                                <option value="<?php echo $loc_row['location']; ?>" 
+                                    <?php if(isset($_GET['filter_location']) && $_GET['filter_location'] == $loc_row['location']) echo 'selected'; ?>>
+                                    <?php echo $loc_row['location']; ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+                            
+                    <div class="filter-group">
+                        <label>Тип питания:</label>
+                        <select name="filter_diet">
+                            <option value="">Любое питание</option>
+                            <?php while($diet_row = mysqli_fetch_assoc($diets_result)): ?>
+                                <option value="<?php echo $diet_row['diet']; ?>"
+                                    <?php if(isset($_GET['filter_diet']) && $_GET['filter_diet'] == $diet_row['diet']) echo 'selected'; ?>>
+                                    <?php echo $diet_row['diet']; ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="search-btn">Применить фильтры</button>
+                        <?php if(!empty($_GET)): ?>
+                            <a href="index.php#destinations" class="reset-link">Сбросить</a>
+                        <?php endif; ?>
+                    </div>
+                </form>
             </div>
 
+            <!-- Вывод карточек туров -->
             <div class="destinations-grid">
-                <?php if (mysqli_num_rows($result) > 0): ?>
-                    <?php while($tour = mysqli_fetch_assoc($result)): ?>
-                        <!-- Начало карточки тура -->
+                <?php if (mysqli_num_rows($tours_result) > 0): ?>
+                    <?php while($tour = mysqli_fetch_assoc($tours_result)): ?>
                         <div class="dest-card">
-                            <div class="dest-img" style="background-image: url('img/tours/<?php echo $tour['image_file']; ?>')">
-                                <!-- Здесь картинка берется из локальной папки -->
-                            </div>
+                            <div class="dest-img" style="background-image: url('img/tours/<?php echo $tour['image_file']; ?>')"></div>
                             <div class="dest-content">
                                 <h3><?php echo htmlspecialchars($tour['title']); ?></h3>
                                 <p><?php echo htmlspecialchars($tour['location']); ?></p>
-                                <p style="font-size: 0.9em; color: #777;">
-                                    <i class="far fa-moon"></i> <?php echo $tour['nights']; ?> ночей | 
-                                    <i class="fas fa-utensils"></i> <?php echo htmlspecialchars($tour['diet']); ?>
+                                <p style="font-size: 13px; color: #777;">
+                                    <?php echo $tour['nights']; ?> ночей | <?php echo htmlspecialchars($tour['diet']); ?>
                                 </p>
                                 <div class="dest-price">от <?php echo number_format($tour['price'], 0, '', ' '); ?> ₽</div>
                                 <a href="order.php?id=<?php echo $tour['id']; ?>" class="buy-btn">Забронировать</a>
                             </div>
                         </div>
-                        <!-- Конец карточки тура -->
                     <?php endwhile; ?>
                 <?php else: ?>
-                    <p>К сожалению, туров пока нет.</p>
+                    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+                        <p>Туров с такими параметрами не найдено. Попробуйте изменить фильтры.</p>
+                    </div>
                 <?php endif; ?>
             </div>
         </section>
