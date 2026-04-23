@@ -85,7 +85,103 @@ $orders_result = mysqli_query($conn, $orders_query);
     </div>
 </header>
 
+<div class="container admin-wrapper">
+    <!-- Боковое меню -->
+    <aside class="admin-sidebar">
+        <h3>Меню</h3>
+        <hr style="margin: 15px 0; opacity: 0.2;">
+        <nav class="admin-nav">
+            <button onclick="showSection('orders')" id="btn-orders" class="active"><i class="fas fa-list"></i> Все бронирования</button>
+            <button onclick="showSection('add-tour')" id="btn-add-tour"><i class="fas fa-plus-circle"></i> Добавить тур</button>
+        </nav>
+    </aside>
 
+    <!-- Основная часть -->
+    <main class="admin-main">
+        
+        <!-- Секция 1: Список бронирований -->
+        <section id="section-orders" class="admin-content-section">
+            <h2>Список бронирований</h2>
+            <p style="color: #888;">Здесь отображаются все заказы, сделанные пользователями.</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Пользователь</th>
+                        <th>Тур</th>
+                        <th>Даты</th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (mysqli_num_rows($orders_result) > 0): ?>
+                        <?php while($order = mysqli_fetch_assoc($orders_result)): ?>
+                            <tr>
+                                <td>#<?php echo $order['id']; ?></td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($order['username']); ?></strong><br>
+                                    <small><?php echo htmlspecialchars($order['email']); ?></small>
+                                </td>
+                                <td><?php echo htmlspecialchars($order['tour_title']); ?></td>
+                                <td>
+                                    <?php echo date('d.m.y', strtotime($order['start_date'])); ?> — 
+                                    <?php echo date('d.m.y', strtotime($order['end_date'])); ?>
+                                </td>
+                                <td><strong><?php echo number_format($order['total_price'], 0, '', ' '); ?> ₽</strong></td>
+                                <td><span class="status-badge">Оплачено</span></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="6" style="text-align: center; padding: 40px;">Бронирований пока нет</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Секция 2: Добавление тура -->
+        <section id="section-add-tour" class="admin-content-section hidden">
+            <h2>Добавить новый тур</h2>
+            <?php echo $msg; ?>
+            <form action="admin.php" method="POST" enctype="multipart/form-data" class="admin-form">
+                <input type="hidden" name="add_tour" value="1">
+                
+                <label>Название отеля/тура:</label>
+                <input type="text" name="title" required placeholder="Например: Hilton Resort & Spa">
+
+                <label>Страна и город:</label>
+                <input type="text" name="location" required placeholder="Например: Египет, Шарм-эль-Шейх">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div>
+                        <label>Цена (₽):</label>
+                        <input type="number" name="price" required>
+                    </div>
+                    <div>
+                        <label>Количество ночей:</label>
+                        <input type="number" name="nights" required>
+                    </div>
+                </div>
+
+                <label>Тип питания:</label>
+                <select name="diet">
+                    <option value="Все включено">Все включено</option>
+                    <option value="Ультра все включено">Ультра все включено</option>
+                    <option value="Завтрак и ужин">Завтрак и ужин</option>
+                    <option value="Только завтрак">Только завтрак</option>
+                    <option value="Без питания">Без питания</option>
+                </select>
+
+                <label>Фотография тура (в папку img/tours/):</label>
+                <input type="file" name="image" accept="image/*" required>
+
+                <button type="submit" class="btn-add">Опубликовать тур на сайте</button>
+            </form>
+        </section>
+
+    </main>
+</div>
 
 <script>
     // Простой скрипт для переключения вкладок
