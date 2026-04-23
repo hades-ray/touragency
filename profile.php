@@ -66,7 +66,63 @@ $orders_result = mysqli_query($conn, $orders_query);
             <a href="#" class="active"><i class="fas fa-suitcase"></i> Мои поездки</a>
         </nav>
     </aside>
+    <!-- Правая колонка: Список поездок -->
+    <main class="profile-content">
+        <section class="trips-section">
+            <div class="section-header">
+                <h2><i class="fas fa-map-marked-alt"></i> Мои поездки</h2>
+                <span class="trips-count">Всего бронирований: <?php echo mysqli_num_rows($orders_result); ?></span>
+            </div>
 
+            <?php if (mysqli_num_rows($orders_result) > 0): ?>
+                <div class="trips-list">
+                    <?php while($order = mysqli_fetch_assoc($orders_result)): ?>
+                        <div class="trip-card">
+                            <div class="trip-img" style="background-image: url('img/tours/<?php echo $order['image_file']; ?>')">
+                                <span class="trip-status">Подтверждено</span>
+                            </div>
+                            
+                            <div class="trip-info">
+                                <div class="trip-main">
+                                    <h3><?php echo htmlspecialchars($order['title']); ?></h3>
+                                    <p class="trip-loc"><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($order['location']); ?></p>
+                                    
+                                    <div class="trip-dates">
+                                        <div class="date-item">
+                                            <span>Вылет:</span>
+                                            <strong><?php echo date('d.m.Y', strtotime($order['start_date'])); ?></strong>
+                                        </div>
+                                        <div class="date-sep"><i class="fas fa-arrow-right"></i></div>
+                                        <div class="date-item">
+                                            <span>Возврат:</span>
+                                            <strong><?php echo date('d.m.Y', strtotime($order['end_date'])); ?></strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="trip-side">
+                                    <div class="trip-price">
+                                        <span>Стоимость:</span>
+                                        <strong><?php echo number_format($order['total_price'], 0, '', ' '); ?> ₽</strong>
+                                    </div>
+                                    <p class="order-id">ID брони: #<?php echo $order['id']; ?></p>
+                                    <button class="btn-details">Детали ваучера</button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            <?php else: ?>
+                <!-- Если поездок нет -->
+                <div class="empty-state">
+                    <img src="img/notrip.jpg" alt="No trips" width="120">
+                    <h3>У вас пока нет забронированных туров</h3>
+                    <p>Самое время отправиться в новое приключение!</p>
+                    <a href="index.php#destinations" class="btn-primary">Посмотреть туры</a>
+                </div>
+            <?php endif; ?>
+        </section>
+    </main>
     
 </div>
 
